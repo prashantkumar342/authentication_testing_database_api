@@ -6,23 +6,24 @@ import jwt from 'jsonwebtoken'
 const loginRoute = express()
 
 loginRoute.post('/api/user/login', async (req, res) => {
-  const user = await userModel.findOne({
-    $or: [
-      { email: req.body.email },
-      { username: req.body.username }
-    ]
-  })
-  if (user && await bcrypt.compare(req.body.password, user.password)) {
-    const privateKey = process.env.JWT_SECRET_KEY
-    const payload = { username: user.username, email: user.email }
-    const authToken = jwt.sign(payload, privateKey, { algorithm: 'RS256' }, { expiresIn: '7d' })
-    res.status(200).cookie('authToken', authToken, {
-      httpOnly: true,
-      sameSite: 'strict'
-    })
-  } else {
-    res.status(401).send({ erro: 'somenthing went wrong' })
+  const user = await userModel.findOne({ email: req.body.email })
+  const privateKey = process.env.JWT_SECRET_KEY
+  if (!user) {
+    return res.status(401).json({ message: 'Invalid email or password' });
   }
+  const isPasswordValid = await bcrypt.compare(req.body.password, user.password)
+  if (!isPasswordValid) {
+    return res.status(401).json({ message: 'Invalid email or password' });
+  }
+  const authToken = jwt.sign({ email: req.body.email }, privateKey)
+  res.cookie('authToken', authToken, {
+    httpOnly: true,
+    secure: false,
+    // sameSite: 'None',
+    maxAge: 24 * 60 * 60 * 1000
+  });
+
+  res.status(200).json({ message: 'Logged in successfully' });
 })
 
 export default loginRoute
