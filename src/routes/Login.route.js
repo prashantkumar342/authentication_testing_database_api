@@ -18,7 +18,7 @@ loginRoute.post('/api/user/login', async (req, res) => {
   const authToken = jwt.sign({ email: req.body.email }, privateKey)
   res.cookie('authToken', authToken, {
     httpOnly: true,
-    secure: false,
+    secure: true,
     // sameSite: 'None',
     maxAge: 24 * 60 * 60 * 1000
   });
