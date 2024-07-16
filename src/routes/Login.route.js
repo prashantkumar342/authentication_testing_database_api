@@ -19,7 +19,8 @@ loginRoute.post('/api/user/login', async (req, res) => {
   res.cookie('authToken', authToken, {
     httpOnly: true,
     // secure: true,
-    sameSite: "strict",
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: "None",
     maxAge: 24 * 60 * 60 * 1000
   });
 
